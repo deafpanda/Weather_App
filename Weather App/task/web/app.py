@@ -1,12 +1,15 @@
-from flask import Flask
 import sys
+
+from flask import Flask, render_template
+
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    return 'Hello, world!'
+    return render_template('index.html')
+    # return 'Hello, world!'
     # return 'Hi! This is the response from the Flask application'
 
 
@@ -27,4 +30,3 @@ if __name__ == '__main__':
         app.run(host=arg_host, port=arg_port)
     else:
         app.run(debug=True)
-
