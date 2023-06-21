@@ -28,6 +28,39 @@ files:
     from hstest import dynamic_test
     from hstest.dynamic.security.exit_handler import ExitHandler
     from pyppeteer import launch
+    from pyppeteer.errors import NetworkError, TimeoutError
+
+    import nest_asyncio
+
+    nest_asyncio.apply()
+
+
+    async def newPage(browser):
+        try:
+            return await browser.newPage()
+        except (NetworkError, TimeoutError):
+            raise WrongAnswer("Browser tab is closed unexpectedly or inaccessible")
+
+
+    async def querySelector(page, selector):
+        try:
+            return await page.querySelector(selector)
+        except (NetworkError, TimeoutError):
+            raise WrongAnswer(f"Can't access an item with a selector '{selector}'")
+
+
+    async def querySelectorAll(page, selector):
+        try:
+            return await page.querySelectorAll(selector)
+        except (NetworkError, TimeoutError):
+            raise WrongAnswer(f"Can't access an item with a selector '{selector}'")
+
+
+    async def goto(page, url):
+        try:
+            return await page.goto(url)
+        except (NetworkError, TimeoutError):
+            raise WrongAnswer(f"Can't access the page with URL '{url}'")
 
 
     class FlaskProjectTest(FlaskTest):
@@ -53,9 +86,9 @@ files:
 
         async def test_response_async(self):
             browser = await self.launch_and_get_browser()
-            page = await browser.newPage()
+            page = await newPage(browser)
             try:
-                await page.goto(self.get_url())
+                await goto(page, self.get_url())
             except Exception:
                 raise WrongAnswer(f"Can't access the main page with URL '{self.get_url()}'")
             await self.close_browser(browser)
@@ -68,16 +101,16 @@ files:
 
         async def test_main_page_structure_async(self):
             browser = await self.launch_and_get_browser()
-            page = await browser.newPage()
+            page = await newPage(browser)
 
             await page.goto(self.get_url())
 
-            cards_div = await page.querySelector('div.cards')
+            cards_div = await querySelector(page, 'div.cards')
 
             if cards_div is None:
                 raise WrongAnswer("Can't find <div> block with class 'cards'")
 
-            cards = await page.querySelectorAll('div.card')
+            cards = await querySelectorAll(page, 'div.card')
 
             if len(cards) == 0:
                 raise WrongAnswer("Can't find <div> blocks with class 'card'")
@@ -86,25 +119,25 @@ files:
                 raise WrongAnswer(f"Found {len(cards)} <div> blocks with class 'card', but should be 3!")
 
             for card in cards:
-                degrees = await card.querySelector('div.degrees')
+                degrees = await querySelector(card, 'div.degrees')
                 if degrees is None:
                     raise WrongAnswer(
                         "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'degrees'")
-                state = await card.querySelector('div.state')
+                state = await querySelector(card, 'div.state')
                 if state is None:
                     raise WrongAnswer(
                         "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'state'")
-                city = await card.querySelector('div.city')
+                city = await querySelector(card, 'div.city')
                 if city is None:
                     raise WrongAnswer(
                         "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'city'")
 
-            input_field = await page.querySelector('input#input-city')
+            input_field = await querySelector(page, 'input#input-city')
 
             if input_field is None:
                 raise WrongAnswer("Can't find <input> element with id 'input-city'")
 
-            button = await page.querySelector('button.submit-button')
+            button = await querySelector(page, 'button.submit-button')
 
             if button is None:
                 raise WrongAnswer("Can't find <button> element with class 'submit-button'")
@@ -130,6 +163,9 @@ files:
     if __name__ == '__main__':
         FlaskProjectTest().run_tests()
   learner_created: false
-feedback_link: https://hyperskill.org/projects/164/stages/852/implement#comment
-status: Unchecked
-record: -1
+feedback_link: https://hyperskill.org/learn/step/12326#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Wed, 21 Jun 2023 02:48:12 UTC"
+record: 2

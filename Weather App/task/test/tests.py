@@ -1,9 +1,61 @@
 import asyncio
 
+from pyppeteer.errors import NetworkError, TimeoutError
 from hstest import FlaskTest, CheckResult, WrongAnswer
 from hstest import dynamic_test
 from hstest.dynamic.security.exit_handler import ExitHandler
 from pyppeteer import launch
+
+import nest_asyncio
+
+nest_asyncio.apply()
+
+
+async def querySelector(page, selector):
+    try:
+        return await page.querySelector(selector)
+    except NetworkError as ex:
+        print(ex)
+        raise WrongAnswer(f"Can't access an item with a selector '{selector}'")
+
+
+async def querySelectorAll(page, selector):
+    try:
+        return await page.querySelectorAll(selector)
+    except (NetworkError, TimeoutError) as ex:
+        print(ex)
+        raise WrongAnswer(f"Can't access an item with a selector '{selector}'")
+
+
+async def newPage(browser):
+    try:
+        return await browser.newPage()
+    except (NetworkError, TimeoutError) as ex:
+        print(ex)
+        raise WrongAnswer("Browser tab is closed unexpectedly or inaccessible")
+
+
+async def goto(page, url):
+    try:
+        return await page.goto(url)
+    except (NetworkError, TimeoutError) as ex:
+        print(ex)
+        raise WrongAnswer(f"Can't access the page with URL '{url}'")
+
+
+async def close_browser(browser):
+    try:
+        await browser.close()
+    except Exception as ex:
+        print(ex)
+        pass
+
+
+async def waitForNavigation(page):
+    try:
+        return await page.waitForNavigation()
+    except (NetworkError, TimeoutError) as ex:
+        print(ex)
 
 
 class FlaskProjectTest(FlaskTest):
@@ -21,29 +73,106 @@ class FlaskProjectTest(FlaskTest):
         except Exception as error:
             raise WrongAnswer(str(error))
 
-    async def close_browser(self, browser):
-        try:
-            await browser.close()
-        except Exception as ex:
-            print(ex)
-            pass
+    async def get_input_field(self, page):
+        input_field = await querySelector(page, 'input#input-city')
+        if input_field is None:
+            raise WrongAnswer("Can't find input field with 'input-city' id!")
+        return input_field
 
-    async def test_main_page_structure(self):
+    async def get_submit_button(self, page):
+        button = await querySelector(page, 'button.submit-button')
+        if button is None:
+            raise WrongAnswer("Can't find a button with 'submit-button' class!")
+        return button
+
+    @classmethod
+    async def check_cards_in_the_page(cls, page, cards_number):
+        cards = await querySelectorAll(page, 'div.card')
+
+        if len(cards) == 0:
+            raise WrongAnswer("Can't find <div> blocks with class 'card'")
+
+        if len(cards) != cards_number:
+            raise WrongAnswer(f"Found {len(cards)} <div> blocks with class 'card', but should be {cards_number}!")
+
+        for card in cards:
+            degrees = await querySelector(card, 'div.degrees')
+            if degrees is None:
+                raise WrongAnswer(
+                    "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'degrees'")
+            state = await querySelector(card, 'div.state')
+            if state is None:
+                raise WrongAnswer(
+                    "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'state'")
+            city = await querySelector(card, 'div.city')
+            if city is None:
+                raise WrongAnswer(
+                    "One of the <div> blocks with card class 'card' doesn't contain <div> block with class 'city'")
+
+    async def test_response_async(self):
         browser = await self.launch_and_get_browser()
-        page = await browser.newPage()
+        page = await newPage(browser)
+        try:
+            await page.goto(self.get_url())
+        except Exception:
+            raise WrongAnswer(f"Can't access the main page with URL '{self.get_url()}'")
+        await close_browser(browser)
 
-        await page.goto(self.get_url())
-        html_code = await page.content()
-
-        if "Hello, world!" not in html_code:
-            raise WrongAnswer("'/' route should return 'Hello, world!' message!")
-
-        await self.close_browser(browser)
-
-    @dynamic_test(time_limit=-1)
-    def test(self):
+    @dynamic_test(order=1, time_limit=-1)
+    def test_response(self):
         ExitHandler.revert_exit()
-        asyncio.new_event_loop().run_until_complete(self.test_main_page_structure())
+        asyncio.new_event_loop().run_until_complete(self.test_response_async())
+        return CheckResult.correct()
+
+    async def test_main_page_structure_async(self):
+        browser = await self.launch_and_get_browser()
+        page = await newPage(browser)
+
+        await goto(page, self.get_url())
+
+        cards_div = await querySelector(page, 'div.cards')
+
+        if cards_div is None:
+            raise WrongAnswer("Can't find <div> block with class 'cards'")
+
+        button = await self.get_submit_button(page)
+        input_field = await self.get_input_field(page)
+
+        await self.check_cards_in_the_page(page, 3)
+
+        await close_browser(browser)
+
+        return CheckResult.correct()
+
+    @dynamic_test(order=2)
+    def test_main_page_structure(self):
+        asyncio.new_event_loop().run_until_complete(self.test_main_page_structure_async())
+        return CheckResult.correct()
+
+    async def test_add_city_async(self):
+        browser = await self.launch_and_get_browser()
+        page = await newPage(browser)
+        await goto(page, self.get_url())
+
+        input_field = await self.get_input_field(page)
+        await input_field.type('Boston')
+
+        button = await self.get_submit_button(page)
+        await asyncio.gather(
+            waitForNavigation(page),
+            button.click(),
+        )
+
+        cards_div = await querySelector(page, 'div.cards')
+
+        if cards_div is None:
+            raise WrongAnswer("Can't find <div> block with class 'cards'")
+
+        await self.check_cards_in_the_page(page, 4)
+
+    @dynamic_test(order=3)
+    def test_add_city(self):
+        asyncio.new_event_loop().run_until_complete(self.test_add_city_async())
         return CheckResult.correct()
 
 
