@@ -13,6 +13,11 @@ def index():
     # return 'Hi! This is the response from the Flask application'
 
 
+@app.route('/add', methods=['POST'])
+def add_city():
+    pass
+
+
 @app.route('/profile')
 def profile():
     return 'This is profile page'

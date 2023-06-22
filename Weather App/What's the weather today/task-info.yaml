@@ -1,22 +1,6 @@
 type: edu
 custom_name: What's the weather today?
 files:
-- name: web/app.py
-  visible: true
-  text: |
-    from flask import Flask
-    import sys
-
-    app = Flask(__name__)
-
-    # don't change the following way to run flask:
-    if __name__ == '__main__':
-        if len(sys.argv) > 1:
-            arg_host, arg_port = sys.argv[1].split(':')
-            app.run(host=arg_host, port=arg_port)
-        else:
-            app.run()
-  learner_created: false
 - name: test/__init__.py
   visible: false
   learner_created: false
@@ -211,6 +195,37 @@ files:
 
     if __name__ == '__main__':
         FlaskProjectTest().run_tests()
+  learner_created: false
+- name: web/static/img/evening-morning.jpg
+  visible: true
+  learner_created: true
+- name: web/static/img/night.jpg
+  visible: true
+  learner_created: true
+- name: web/static/img/day.jpg
+  visible: true
+  learner_created: true
+- name: web/static/style.css
+  visible: true
+  learner_created: true
+- name: web/templates/index.html
+  visible: true
+  learner_created: true
+- name: web/app.py
+  visible: true
+  text: |
+    from flask import Flask
+    import sys
+
+    app = Flask(__name__)
+
+    # don't change the following way to run flask:
+    if __name__ == '__main__':
+        if len(sys.argv) > 1:
+            arg_host, arg_port = sys.argv[1].split(':')
+            app.run(host=arg_host, port=arg_port)
+        else:
+            app.run()
   learner_created: false
 feedback_link: https://hyperskill.org/learn/step/12327#comment
 status: Unchecked
