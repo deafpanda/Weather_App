@@ -227,15 +227,15 @@ files:
         else:
             app.run()
   learner_created: false
-- name: web/templates/dict_weather.html
+- name: web/templates/backup.html
   visible: true
   learner_created: true
-- name: web/templates/backup.html
+- name: web/templates/dict_weather.html
   visible: true
   learner_created: true
 feedback_link: https://hyperskill.org/learn/step/12327#comment
 status: Solved
 feedback:
   message: Congratulations!
-  time: "Fri, 23 Jun 2023 03:59:11 UTC"
-record: -1
+  time: "Fri, 23 Jun 2023 04:04:00 UTC"
+record: 3
