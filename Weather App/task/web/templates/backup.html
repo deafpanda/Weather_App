@@ -20,31 +20,49 @@
     </div>
     {% endif %}
     {% endwith %}
-    <form action="/add" method="POST">
+    <form action="/" method="POST">
         <input type="text" placeholder="Enter a city name" name="city_name" id="input-city">
         <button type="submit" class="submit-button">Add</button>
     </form>
 </div>
 <div class="cards">
-     {% for record in records %}
-    {% if record.card_class == 'day' %}
-        <div class="card day">
-    {% elif record.card_class == 'night' %}
-        <div class="card night">
-    {% elif record.card_class == 'evening-morning' %}
-        <div class="card evening-morning">
-    {% endif %}
+    <div class="card night">
         <div class="delete-wrapper">
             <form action="#" method="POST">
                 <input type="hidden" name="id" value="">
                 <button class="delete-button" type="submit">&#10006;</button>
             </form>
         </div>
-        <div class="degrees"><span>{{ record.degree }}<span class="celsius"> °C</span></span></div>
-        <div class="state">{{ record.state }}</div>
-        <div class="city">{{ record.city }}</div>
+        <div class="degrees"><span>9<span class="celsius"> °C</span></span></div>
+        <div class="state">Chilly</div>
+        <div class="city">BOSTON</div>
     </div>
-  {% endfor %}
+
+    <div class="card day">
+        <div class="delete-wrapper">
+            <form action="#" method="POST">
+                <input type="hidden" name="id" value="">
+                <button class="delete-button" type="submit">&#10006;</button>
+            </form>
+        </div>
+        <div class="degrees"><span>32<span class="celsius"> °C</span></span></div>
+        <div class="state">Sunny</div>
+        <div class="empty"></div>
+        <div class="city">NEW YORK</div>
+    </div>
+
+    <div class="card evening-morning">
+        <div class="delete-wrapper">
+            <form action="#" method="POST">
+                <input type="hidden" name="id" value="">
+                <button class="delete-button" type="submit">&#10006;</button>
+            </form>
+        </div>
+        <div class="degrees"><span>-15<span class="celsius"> °C</span></span></div>
+        <div class="state">Cold</div>
+        <div class="empty"></div>
+        <div class="city">EDMONTON</div>
+    </div>
 </div>
 </body>
 </html>

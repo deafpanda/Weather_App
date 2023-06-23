@@ -20,20 +20,14 @@
     </div>
     {% endif %}
     {% endwith %}
-    <form action="/add" method="POST">
+    <form action="/" method="POST">
         <input type="text" placeholder="Enter a city name" name="city_name" id="input-city">
         <button type="submit" class="submit-button">Add</button>
     </form>
 </div>
 <div class="cards">
      {% for record in records %}
-    {% if record.card_class == 'day' %}
-        <div class="card day">
-    {% elif record.card_class == 'night' %}
-        <div class="card night">
-    {% elif record.card_class == 'evening-morning' %}
-        <div class="card evening-morning">
-    {% endif %}
+    <div class={{ record.card_class }}>
         <div class="delete-wrapper">
             <form action="#" method="POST">
                 <input type="hidden" name="id" value="">
