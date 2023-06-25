@@ -514,6 +514,27 @@ files:
     </body>
     </html>
   learner_created: true
+- name: weather.db
+  visible: true
+  learner_created: true
+- name: __init__.py
+  visible: true
+  learner_created: true
+- name: web/__init__.py
+  visible: true
+  learner_created: true
+- name: web/models.py
+  visible: true
+  learner_created: true
+- name: run.py
+  visible: true
+  learner_created: true
+- name: web/weather.db
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/12328#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Sun, 25 Jun 2023 05:30:33 UTC"
 record: -1
