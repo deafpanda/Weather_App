@@ -35,8 +35,8 @@
         <div class="card evening-morning">
     {% endif %}
         <div class="delete-wrapper">
-            <form action="#" method="POST">
-                <input type="hidden" name="id" value="">
+            <form action="/delete" method="POST">
+                <input type="hidden" name="id" value={{ record.id }}>
                 <button class="delete-button" type="submit">&#10006;</button>
             </form>
         </div>

@@ -1,13 +1,18 @@
+import os
 import sys
 from os import environ, path
+
 from requests import get
 import json
 
-from flask import Flask, render_template, request
+from flask import Flask, flash, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from cachetools import cached, TTLCache
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.urandom(64)
+app.config['DEBUG'] = True
 
 basedir = path.abspath(path.dirname(__file__))
 sqldb_filename = 'weather.db'
@@ -36,7 +41,6 @@ with app.app_context():
     finally:
         print("db.create_all() was successful - no exceptions were raised")
 
-
 api_key = environ['OpenWeather_API_KEY']
 weather = []
 
@@ -53,25 +57,41 @@ def add_city():
     city_name = request.form['city_name']
     response = get('http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid={}'
                    .format(city_name, api_key))
-    weather_raw = json.loads(response.content)
-    city_weather = {'card_class': 'night', 'id': weather_raw['id'], 'degree': weather_raw['main']['temp'],
-                    'state': weather_raw['weather'][0]['description'], 'city': weather_raw['name']}
+    if response.ok:
+        weather_raw = json.loads(response.content)
+        card_class = 'day' if weather_raw['sys']['sunset'] > weather_raw['dt'] > weather_raw['sys'][
+            'sunrise'] else 'night'
+        city_weather = {'card_class': card_class, 'id': weather_raw['id'], 'degree': weather_raw['main']['temp'],
+                        'state': weather_raw['weather'][0]['description'], 'city': weather_raw['name']}
 
-    city = City()
-    city.id = weather_raw['id']
-    city.name = weather_raw['name']
+        city = City()
+        __tablename__ = "city"
+        city.id = weather_raw['id']
+        city.name = weather_raw['name']
 
-    try:
-        db.session.add(city)
-        db.session.commit()
-        weather.append(city_weather)
-    except Exception as exception:
-        print("got the following exception when attempting db.create_all(): " + str(exception))
-    finally:
-        print("db.create_all() was successful - no exceptions were raised")
+        try:
+            db.session.add(city)
+            db.session.commit()
+            weather.append(city_weather)
+        except Exception as exception:
+            flash(f'The city has already been added to the list!', 'error')
+            # print("got the following exception when attempting db.create_all(): " + str(exception))
+        finally:
+            print(f"City, {city_name} added successfully- no exceptions were raised")
 
+    else:
+        flash(f'The city doesn\'t exist!', 'error')
     return render_template('index.html', records=weather)
 
+
+@app.route('/delete', methods=['GET', 'POST'])
+def delete_city():
+    city_id = request.form['id']
+    city = City.query.filter_by(id=city_id).first()
+    db.session.delete(city)
+    db.session.commit()
+    weather.remove(next(item for item in weather if item["id"] == int(city_id)))
+    return redirect('/')
 
 @app.route('/profile')
 def profile():
